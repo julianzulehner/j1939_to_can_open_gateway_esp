@@ -34,11 +34,18 @@ planning to use CANOpen with ESP32 I highly recommend the
 
 In any case, feel free to use this code as an example or as a reference.
 
-## Getting Started
 
-### Dependencies
+## Prototype 
+As a prototype, the components were wired as follows. Please find the names of the components used in the wiring diagram below.
+
+<img src="./images/wiring_diagram_j1939_to_CANopen.jpg" alt="Wiring diagram of J1939 to CANOpen Gateway" width="700">
+
+This prototype is protected by a 3D-printed casing. 
+
+<img src="./images/20240917_082733228_iOS.jpg" width="250">
+
+## Dependencies
 - [ESP-IDF toolchain](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/get-started/index.html) in VS Code (for straightforward compiling and flashing).
-
 
 ## Version History
 
