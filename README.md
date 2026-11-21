@@ -1,20 +1,25 @@
-# ESP CAN
+# J1939 to CAN Open Gateway
 
-This project contains the code for a CAN gateway from J1939 to CAN open.
+This project aims to create a low-budget J1939 to CAN Open gateway which enables the use of J1939 CAN sensors which are used in automotive for test purposes in the lab.
+For this project, two ESP32-C3 MINI were used. Each has one CAN transceiver. The two ESP32 communicate via UART.
+The communication is unidirectional (J1939 --> ESP32 --> UART --> ESP32 --> CANOpen).
+
+## Limitations
+The J1939 side is limited to the TE Connectivity OPS3 oil property sensor, but you can configure other sensors.
+
+The CANopen side is not fully implemented and includes only the features required for this project. 
+New objects can be implemented in the object dictionary, but be aware that the implemented hash table might create hash collisions. For the set of objects used in this project, however, it works.
 
 ## Description
 
-This repository contains code specific for the usage of CAN communication with
-ESP32 development boards. <br>
+Two ESP32 development boards are connected together, communicating via UART.<br>
 
-Two ESP32 development boards are connected together communicating via UART.<br>
-
-The first ESP32 reads the CAN messages from the TE connectivity OPS3 oil 
-property sensor, which uses J1939 sensor at a baud rate of250kBits/s.
+The first ESP32 reads the CAN messages from the TE Connectivity OPS3 oil 
+property sensor, which uses J1939 sensor at a baud rate of 250kBits/s.
 The data is parsed and sent via UART to the second device. <br>
 
-The second ESP32 incooporates the CANopen application layer and works on a 
-baud rate of 125kBits/s. Parts of CiA 301, CiA 305 and CiA 404 are implemented.
+The second ESP32 incorporates the CANopen application layer and works on a 
+baud rate of 125kBits/s. Parts of CiA 301, CiA 305, and CiA 404 are implemented.
 - NMT slave
 - Node guarding
 - SDO service
