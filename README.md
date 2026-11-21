@@ -1,62 +1,174 @@
-# J1939 to CAN Open Gateway
+# J1939 to CANopen Gateway
 
-This project aims to create a low-budget J1939 to CAN Open gateway which enables the use of J1939 CAN sensors which are used in automotive for test purposes in the lab.
-For this project, two ESP32-C3 MINI were used. Each has one CAN transceiver. The two ESP32 communicate via UART.
-The communication is unidirectional (J1939 --> ESP32 --> UART --> ESP32 --> CANOpen).
+A low-cost gateway that converts sensor data from a J1939 network into CANopen process data.
+
+The original purpose of this project was to integrate automotive J1939 sensors into a laboratory CANopen environment without requiring expensive commercial gateway hardware. The current implementation targets the **TE Connectivity OPS3 Oil Property Sensor**, but it can be adapted to support other J1939 devices.
+
+The gateway is built using two **ESP32-C3 Mini** development boards, each equipped with its own CAN transceiver. The devices communicate via UART, resulting in the following unidirectional data flow:
+
+```text
+J1939 Sensor
+     │
+     ▼
+ ESP32 #1
+     │ UART
+     ▼
+ ESP32 #2
+     │
+     ▼
+ CANopen Network
+```
+
+---
+
+## Features
+
+### J1939 Side
+
+- Supports the TE Connectivity OPS3 Oil Property Sensor
+- J1939 communication at **250 kbit/s**
+- Easily extendable to additional J1939 sensors
+
+### CANopen Side
+
+The CANopen stack is intentionally lightweight and only implements the features required for this project.
+
+Implemented services:
+
+- NMT Slave
+- Node Guarding
+- SDO Server
+- TPDO Transmission on SYNC
+- LSS Protocol (CiA 305)
+- TPDO Mapping according to CiA 404 (Analog Input Device Profile)
+
+The CANopen interface operates at **125 kbit/s**.
+
+---
 
 ## Limitations
-The J1939 side is limited to the TE Connectivity OPS3 oil property sensor, but you can configure other sensors.
 
-The CANopen side is not fully implemented and includes only the features required for this project. 
-New objects can be implemented in the object dictionary, but be aware that the implemented hash table might create hash collisions. For the set of objects used in this project, however, it works.
+### J1939
 
-## Description
+The current implementation is tailored to the TE Connectivity OPS3 sensor. Other sensors can be supported by extending the J1939 message parser.
 
-Two ESP32 development boards are connected together, communicating via UART.<br>
+### CANopen
 
-The first ESP32 reads the CAN messages from the TE Connectivity OPS3 oil 
-property sensor, which uses J1939 sensor at a baud rate of 250kBits/s.
-The data is parsed and sent via UART to the second device. <br>
+This is **not a complete CANopen implementation**.
 
-The second ESP32 incorporates the CANopen application layer and works on a 
-baud rate of 125kBits/s. Parts of CiA 301, CiA 305, and CiA 404 are implemented.
-- NMT slave
-- Node guarding
-- SDO service
-- TPDO service on sync
-- LSS protocol (CiA 305)
-- TPDO mapping according to CiA 404 (Analog input sensor)
+Only the functionality required for the gateway application has been implemented. Additional objects can be added to the object dictionary if needed.
 
-This project was made from scratch for educational reasons. If someone is 
-planning to use CANOpen with ESP32 I highly recommend the 
-[CANopenNode](https://github.com/CANopenNode/CANopenNode) repository instead.
-<br> 
+The object dictionary uses a custom hash table implementation. While hash collisions are theoretically possible, no issues have been observed with the set of objects used in this project.
 
-In any case, feel free to use this code as an example or as a reference.
+For production-grade CANopen applications, consider using the excellent [CANopenNode](https://github.com/CANopenNode/CANopenNode) project instead.
 
+---
 
-## Prototype 
-As a prototype, the components were wired as follows. Please find the names of the components used in the wiring diagram below.
+## Architecture
 
-<img src="./images/wiring_diagram_j1939_to_CANopen.jpg" alt="Wiring diagram of J1939 to CANOpen Gateway" width="700">
+Two ESP32-C3 Mini boards are connected via UART.
 
-This prototype is protected by a 3D-printed casing. 
+### ESP32 #1 – J1939 Interface
 
-<img src="./images/20240917_082733228_iOS.jpg" width="250">
+- Receives J1939 frames from the OPS3 sensor
+- Parses relevant sensor data
+- Transfers the processed data via UART
+
+### ESP32 #2 – CANopen Interface
+
+- Receives sensor values from the UART connection
+- Implements the CANopen application layer
+- Publishes the sensor data through CANopen TPDOs
+
+---
+
+## Prototype
+
+The prototype hardware is wired as shown below.
+
+<p align="center">
+  <img src="./images/wiring_diagram_j1939_to_CANopen.jpg" alt="Wiring diagram of J1939 to CANopen Gateway" width="700">
+</p>
+
+The assembled gateway is housed in a custom 3D-printed enclosure.
+
+<p align="center">
+  <img src="./images/20240917_082733228_iOS.jpg" alt="3D printed enclosure" width="250">
+</p>
+
+---
+
+## Hardware
+
+The prototype was built using:
+
+- 2 × ESP32-C3 Mini development boards
+- 2 × CAN transceivers
+- TE Connectivity OPS3 Oil Property Sensor
+- 3D-printed enclosure
+- UART connection between the ESP32 devices
+
+---
 
 ## Dependencies
-- [ESP-IDF toolchain](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/get-started/index.html) in VS Code (for straightforward compiling and flashing).
+
+- [ESP-IDF](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/get-started/index.html)
+- Visual Studio Code (recommended)
+- ESP32-C3 development boards
+- CAN transceivers compatible with the ESP32-C3
+
+---
+
+## Building and Flashing
+
+1. Install the ESP-IDF toolchain.
+2. Open the project in Visual Studio Code with the ESP-IDF extension.
+3. Configure the target device.
+4. Build the project:
+
+```bash
+idf.py build
+```
+
+5. Flash the firmware:
+
+```bash
+idf.py -p <PORT> flash
+```
+
+6. Monitor the serial output:
+
+```bash
+idf.py monitor
+```
+
+---
 
 ## Version History
 
-- v1.0.2
-    - First working version with incomplete implementations
-    - Only one TPDO configured
-    - TPDO transmit on every sync message indepent of configuration
+### v1.0.2
+
+- Initial working release
+- Basic J1939-to-CANopen gateway functionality
+- Single TPDO configuration
+- TPDO transmitted on every SYNC message regardless of configuration
+
+---
+
+## Motivation
+
+This project was implemented from scratch primarily for educational purposes and to gain a deeper understanding of both J1939 and CANopen protocols.
+
+While the implementation is suitable as a reference, learning project, or test setup, it is not intended to replace mature CANopen stacks in production environments.
+
+---
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details
+This project is licensed under the MIT License. See the `LICENSE` file for details.
+
+---
 
 ## Acknowledgments
-- [CANopenNode](https://github.com/CANopenNode/CANopenNode)
+
+- [CANopenNode](https://github.com/CANopenNode/CANopenNode) for serving as an excellent CANopen reference implementation and learning resource.
